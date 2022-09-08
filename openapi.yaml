@@ -1,0 +1,63 @@
+openapi: "3.0.0"
+info:
+  version: 0.1.0
+  title: Loadbalancer API
+  description: API to configure a loadbalancer
+  contact:
+    name: Sven Haardiek
+    email: sven@haardiek.de
+  license:
+    name: MIT
+    url: https://choosealicense.com/licenses/mit/
+paths:
+  /healthz:
+    get:
+      description: Health check endpoint
+      operationId: getHealth
+      responses:
+        '200':
+          description: Everything OK
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+
+    frontend:
+      type: object
+      required:
+        - name
+        - port
+        - test
+        - backend
+      properties:
+        name:
+          type: string
+        port:
+          type: number
+        backend:
+          $ref: '#/components/schemas/backend'
+
+    backend:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
