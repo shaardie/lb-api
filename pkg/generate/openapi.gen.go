@@ -22,11 +22,31 @@ type Error struct {
 	Message string `json:"message"`
 }
 
+// Backend defines model for backend.
+type Backend struct {
+	Server *[]string `json:"server,omitempty"`
+}
+
+// Frontend defines model for frontend.
+type Frontend struct {
+	Backend Backend `json:"backend"`
+	Port    float32 `json:"port"`
+}
+
+// Loadbalancer defines model for loadbalancer.
+type Loadbalancer struct {
+	Frontends *[]Frontend `json:"frontends,omitempty"`
+	Name      *string     `json:"name,omitempty"`
+}
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 
 	// (GET /healthz)
 	GetHealth(ctx echo.Context) error
+
+	// (GET /loadbalancer)
+	GetLoadbalancer(ctx echo.Context) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -40,6 +60,15 @@ func (w *ServerInterfaceWrapper) GetHealth(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.GetHealth(ctx)
+	return err
+}
+
+// GetLoadbalancer converts echo context to params.
+func (w *ServerInterfaceWrapper) GetLoadbalancer(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.GetLoadbalancer(ctx)
 	return err
 }
 
@@ -72,19 +101,23 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	}
 
 	router.GET(baseURL+"/healthz", wrapper.GetHealth)
+	router.GET(baseURL+"/loadbalancer", wrapper.GetLoadbalancer)
 
 }
 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/2SSQW/WMAyG/0pkOFZN2W49scPEPgFiEtwQBy91m2ytExz3E2Pqf0dJO8bEqW/j14+d",
-	"2E/g4pIiE2uG/gmy87RgldciUYpIEhOJBqrHLg5UvmOUBRV6CKyXF9CAPibaf2kiga2BhXLGqbqPYFYJ",
-	"PMG2NSD0cw1CA/Tfd+aL/8dfWLy7J6ewlYTAY9wbYEWnRdKCYS7YM/F7jyhDoIe2shiXAvh6JjY3R6T0",
-	"NFB2EpKGyNDD1e3JaDQu8himVcigmSMOdzgjOxJoYA6OONc7HMjPp2/QwCqlsFdNubfW+Rgz4WFuXVzs",
-	"obNdgtpSWYPOJf/TPwXM1e0JGjiT5L2hrn3XdsUdEzGmAD1ctl3bQQMJ1dcJWE84q/9d9ET1IV7f6qbG",
-	"jfPkHgzxkGJghcoULJ7TAD18IN2NUIaRUyzdFthF1/3PvD6TPKoPPJkvH/eHHHGd9XkixFViSnNwtYi9",
-	"zyXzeaeKeis0Qg9v7MvS2WPj7L5uddKvK69MvxI5pcHQs2fbtj8BAAD//0oOAJa6AgAA",
+	"H4sIAAAAAAAC/8RUTW+cPBD+K9a87xEBTW6cmkOUrJqqkdpb1cOsGcBZsF17WHUb8d8rG/aDhba59bSz",
+	"9viZ58PmFaTprNGk2UPxCl421GEs750zLhTWGUuOFcVlaUoKv5VxHTIUoDTf3kACfLA0/qWaHAwJdOQ9",
+	"1rF72vTslK5hGBJw9L1Xjkoovo6Y5/5vJzCzfSHJAWuLcke6XPLx5PYUeSqmzq8MO6Ghc3iIwxfwlTOa",
+	"V/EvBv/vqIIC/svOnmWTYdmxbUjAGscXNHTfbYMfV5pj11nXmubWYLnFFrWklSCOlP1M+584nkQuLElA",
+	"Y/eboK5ohSWlKzPeBc0oo1jqULXh4J70+wbRlYp2aYx1hIbPe9LicdoJI0vy0inLymgo4O55I9gIaXSl",
+	"6t6RQDHTn0CrJGkfWU6QHzdfIIHehcENs/VFlsnGGE84NafSdNlU+6xTnEXxittw/uligLh73kACe3J+",
+	"JJSn79I8dBtLGq2CAm7TPM0hAYvcRLezhrDl5meoa4pGzFU9xn0hG5I7Qbq0RukQewgSQ8+mhAIeiMdG",
+	"CHfEWxPYBrCbPF9i3u/JHbhRuhafPoxGVti3fEyEdCzR2lbJOCR78eHk8Xn/7Z6MLz8mPZ/ca/phSTKV",
+	"go49QwLZ9UVdteKBWGDbXqe6cOJpvr/mx5tVvulZzAgtvxYLF56UZ2GqpZh/HsUw/AoAAP//Hff4gdAF",
+	"AAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

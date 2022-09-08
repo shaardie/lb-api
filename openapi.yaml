@@ -24,19 +24,45 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /loadbalancer:
+    get:
+      description: Get all loadbalancer
+      operationId: getLoadbalancer
+      responses:
+        '200':
+          description: List of all loadbalancer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/loadbalancer'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
 components:
   schemas:
+
+    loadbalancer:
+      type: object
+      properties:
+        name:
+          type: string
+        frontends:
+          type: array
+          items:
+            $ref: '#/components/schemas/frontend'
 
     frontend:
       type: object
       required:
-        - name
         - port
-        - test
         - backend
       properties:
-        name:
-          type: string
         port:
           type: number
         backend:
@@ -44,11 +70,11 @@ components:
 
     backend:
       type: object
-      required:
-        - name
       properties:
-        name:
-          type: string
+        server:
+          type: array
+          items:
+            type: string
 
     Error:
       type: object
