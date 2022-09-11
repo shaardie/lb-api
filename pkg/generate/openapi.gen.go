@@ -8,36 +8,53 @@ import (
 	"compress/gzip"
 	"encoding/base64"
 	"fmt"
+	"net/http"
 	"net/url"
 	"path"
 	"strings"
 
+	"github.com/deepmap/oapi-codegen/pkg/runtime"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/labstack/echo/v4"
 )
 
-// Error defines model for Error.
+// Config defines model for config.
+type Config struct {
+	Frontends []struct {
+		Backend struct {
+			Server *[]string `json:"server,omitempty"`
+		} `json:"backend"`
+		Port int `json:"port"`
+	} `json:"frontends"`
+}
+
+// Error defines model for error.
 type Error struct {
-	Code    int32  `json:"code"`
+	Code    int    `json:"code"`
 	Message string `json:"message"`
-}
-
-// Backend defines model for backend.
-type Backend struct {
-	Server *[]string `json:"server,omitempty"`
-}
-
-// Frontend defines model for frontend.
-type Frontend struct {
-	Backend Backend `json:"backend"`
-	Port    float32 `json:"port"`
 }
 
 // Loadbalancer defines model for loadbalancer.
 type Loadbalancer struct {
-	Frontends *[]Frontend `json:"frontends,omitempty"`
-	Name      *string     `json:"name,omitempty"`
+	Config Config  `json:"config"`
+	Name   *string `json:"name,omitempty"`
+	Status *Status `json:"status,omitempty"`
 }
+
+// Status defines model for status.
+type Status struct {
+	Hostname *string `json:"hostname,omitempty"`
+	Ip       *string `json:"ip,omitempty"`
+}
+
+// Name defines model for name.
+type Name = string
+
+// CreateLoadBalancerJSONBody defines parameters for CreateLoadBalancer.
+type CreateLoadBalancerJSONBody = Loadbalancer
+
+// CreateLoadBalancerJSONRequestBody defines body for CreateLoadBalancer for application/json ContentType.
+type CreateLoadBalancerJSONRequestBody = CreateLoadBalancerJSONBody
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -45,8 +62,14 @@ type ServerInterface interface {
 	// (GET /healthz)
 	GetHealth(ctx echo.Context) error
 
-	// (GET /loadbalancer)
-	GetLoadbalancer(ctx echo.Context) error
+	// (GET /loadbalancers)
+	GetLoadbalancers(ctx echo.Context) error
+
+	// (GET /loadbalancers/{name})
+	GetLoadbalancer(ctx echo.Context, name Name) error
+
+	// (PUT /loadbalancers/{name})
+	CreateLoadBalancer(ctx echo.Context, name Name) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -63,12 +86,44 @@ func (w *ServerInterfaceWrapper) GetHealth(ctx echo.Context) error {
 	return err
 }
 
-// GetLoadbalancer converts echo context to params.
-func (w *ServerInterfaceWrapper) GetLoadbalancer(ctx echo.Context) error {
+// GetLoadbalancers converts echo context to params.
+func (w *ServerInterfaceWrapper) GetLoadbalancers(ctx echo.Context) error {
 	var err error
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetLoadbalancer(ctx)
+	err = w.Handler.GetLoadbalancers(ctx)
+	return err
+}
+
+// GetLoadbalancer converts echo context to params.
+func (w *ServerInterfaceWrapper) GetLoadbalancer(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "name" -------------
+	var name Name
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "name", runtime.ParamLocationPath, ctx.Param("name"), &name)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter name: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.GetLoadbalancer(ctx, name)
+	return err
+}
+
+// CreateLoadBalancer converts echo context to params.
+func (w *ServerInterfaceWrapper) CreateLoadBalancer(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "name" -------------
+	var name Name
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "name", runtime.ParamLocationPath, ctx.Param("name"), &name)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter name: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.CreateLoadBalancer(ctx, name)
 	return err
 }
 
@@ -101,23 +156,30 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	}
 
 	router.GET(baseURL+"/healthz", wrapper.GetHealth)
-	router.GET(baseURL+"/loadbalancer", wrapper.GetLoadbalancer)
+	router.GET(baseURL+"/loadbalancers", wrapper.GetLoadbalancers)
+	router.GET(baseURL+"/loadbalancers/:name", wrapper.GetLoadbalancer)
+	router.PUT(baseURL+"/loadbalancers/:name", wrapper.CreateLoadBalancer)
 
 }
 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/8RUTW+cPBD+K9a87xEBTW6cmkOUrJqqkdpb1cOsGcBZsF17WHUb8d8rG/aDhba59bSz",
-	"9viZ58PmFaTprNGk2UPxCl421GEs750zLhTWGUuOFcVlaUoKv5VxHTIUoDTf3kACfLA0/qWaHAwJdOQ9",
-	"1rF72vTslK5hGBJw9L1Xjkoovo6Y5/5vJzCzfSHJAWuLcke6XPLx5PYUeSqmzq8MO6Ghc3iIwxfwlTOa",
-	"V/EvBv/vqIIC/svOnmWTYdmxbUjAGscXNHTfbYMfV5pj11nXmubWYLnFFrWklSCOlP1M+584nkQuLElA",
-	"Y/eboK5ohSWlKzPeBc0oo1jqULXh4J70+wbRlYp2aYx1hIbPe9LicdoJI0vy0inLymgo4O55I9gIaXSl",
-	"6t6RQDHTn0CrJGkfWU6QHzdfIIHehcENs/VFlsnGGE84NafSdNlU+6xTnEXxittw/uligLh73kACe3J+",
-	"JJSn79I8dBtLGq2CAm7TPM0hAYvcRLezhrDl5meoa4pGzFU9xn0hG5I7Qbq0RukQewgSQ8+mhAIeiMdG",
-	"CHfEWxPYBrCbPF9i3u/JHbhRuhafPoxGVti3fEyEdCzR2lbJOCR78eHk8Xn/7Z6MLz8mPZ/ca/phSTKV",
-	"go49QwLZ9UVdteKBWGDbXqe6cOJpvr/mx5tVvulZzAgtvxYLF56UZ2GqpZh/HsUw/AoAAP//Hff4gdAF",
-	"AAA=",
+	"H4sIAAAAAAAC/+xW35ObNhD+V5ht3oIBxz6nx1OTTpvc9HrJTPt2c52RxWKUA0mRFvdcD/97RwIbY4iT",
+	"TjttH/IEkj7tj+/bXdgDV5VWEiVZSPegmWEVEhq/kqxC98zQciM0CSUhhTtWYaDygAoMSsWyNSuZ5Ggg",
+	"BOHONaMCwu5y+wjB4MdaGMwgJVNjCJYXWDFnHJ9YpUsHvV6vOCar1Sx7yeezJc+uZut8lc+SfLFa5NfJ",
+	"t8t8DSFUQt6i3FAB6TwE2ml315IRcgNN0xxs+wy4krnY+MyM0mhIoN/PjZKEMvMLQVjZMWbN+CPKbHxg",
+	"0WzRDG72ScyjF9EiWqbzxeIlhI4MQuNo+S16nt4ns+uH589gFPZxgxnDdtD0G2r9ATk5hFaGBr6cixAq",
+	"9iSquoJ0dXW1WHl62nVPjpCEGzTebC/EfWsxPCb6MOF0FNbp/Z7FqatojDJj9rjKcJDGMlmOIw2hQmvZ",
+	"ZgiFO0XBj6qW2ZjCs9i8m97KVICD4p2I81A6zwzmkMI3cd8rcVdjcYdqwmOz/OV6Nsiyd7LcHVpjVBqW",
+	"GNX2c5F0qHMeuv7r4jwam+Kj9zNkolCWxtkddqNuK+KqmipsoScb5BMCTlJxCNFBhMxVJw8x3jZExUTp",
+	"DG1RflcwZjKBj5GXvxtCv2xRBm+7ExfUcKK9en8TkApajmqDATsfbKXgKC32QxF+vvkVQqiNc1wQaZvG",
+	"MS+Ussg6sCMk7t5tXAmKfUMJ8jTcnjgIXr2/gRC2aGwbUBLNo8ShlUbJtIAUFlESJe1AKbwqcYGspOIP",
+	"975BGs/pt/484AXyxwBlppWQrt2dtMxhbjJI4Q1SC/SVaLVy0TpjL5LEPZjWpeAeH3+wzvD+ZHiPJRzG",
+	"8MMWzY4KITfBu59a4nNWl3RQECV93smlqm+HTDP2XEt80sgJs+CIaUKIT4W1n+TuDVLAyvK8DEbU3Q6s",
+	"TTP4xXkevyaXEh5ENB7QIx5uhSX3tT7Pxv7/1Ij3rreai6KcXgjWu+CuHW8XhfFd0//X3E/n0ENi3+LN",
+	"w9+U88tVHPPl0sqCc63/U7lC0PWEKN8bZOQmpsTfL7dLi3TCvP4HhPlYo6XXKtv9a5pcynT4e9t8rZxB",
+	"ozfNnwEAAP//kskn/2gMAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

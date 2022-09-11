@@ -17,20 +17,23 @@ paths:
       responses:
         '200':
           description: Everything OK
+          application/json:
+            schema:
+              type: string
         default:
           description: unexpected error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/error'
 
-  /loadbalancer:
+  /loadbalancers:
     get:
       description: Get all loadbalancer
-      operationId: getLoadbalancer
+      operationId: GetLoadbalancers
       responses:
         '200':
-          description: List of all loadbalancer
+          description: List of all loadbalancers
           content:
             application/json:
               schema:
@@ -42,41 +45,120 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/error'
+  /loadbalancers/{name}:
+    get:
+      description: Get loadbalancer by Name
+      operationId: GetLoadbalancer
+      parameters:
+        - $ref: '#/components/parameters/name'
+      responses:
+        '200':
+          description: Named loadbalancer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/loadbalancer'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+    put:
+      description: Create a new loadbalancer
+      operationId: CreateLoadBalancer
+      parameters:
+        - $ref: '#/components/parameters/name'
+      requestBody:
+        description: Create a new loadbalancer
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/loadbalancer'
+      responses:
+        '200':
+          description: Named loadbalancer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/loadbalancer'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
 
 components:
+  parameters:
+    name:
+      name: name
+      in: path
+      description: Name of the loadbalancer
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        example: 9b6ce066-d7c1-4cd5-bf6f-0f363f9084fb
   schemas:
-
     loadbalancer:
       type: object
+      required:
+        - name
+        - config
+        - status
       properties:
         name:
           type: string
+          readOnly: true
+          example: 9b6ce066-d7c1-4cd5-bf6f-0f363f9084fb
+        config:
+          $ref: '#/components/schemas/config'
+        status:
+          $ref: '#/components/schemas/status'
+
+    config:
+      type: object
+      required:
+        - frontends
+      properties:
         frontends:
           type: array
           items:
-            $ref: '#/components/schemas/frontend'
+            type: object
+            required:
+              - port
+              - backend
+            properties:
+              port:
+                type: integer
+                minimum: 1
+                maximum: 65536
+                example: 1337
+              backend:
+                type: object
+                properties:
+                  server:
+                    type: array
+                    items:
+                      type: string
+                      pattern: '^.+:[0-9]+$'
+                      example: 1.2.3.4:1337
 
-    frontend:
+    status:
       type: object
-      required:
-        - port
-        - backend
+      readOnly: true
       properties:
-        port:
-          type: number
-        backend:
-          $ref: '#/components/schemas/backend'
+        ip:
+          type: string
+          example: 1.2.3.4
+        hostname:
+          type: string
+          example: hostname.example.com
 
-    backend:
-      type: object
-      properties:
-        server:
-          type: array
-          items:
-            type: string
-
-    Error:
+    error:
       type: object
       required:
         - code
@@ -84,6 +166,7 @@ components:
       properties:
         code:
           type: integer
-          format: int32
+          example: 404
         message:
           type: string
+          example: "Not Found"

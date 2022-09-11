@@ -1,7 +1,11 @@
 swagger_version="4.14.0"
 
-build: pkg/generate/openapi.gen.go dist dist/openapi.yaml
+.PHONY: build run get
+build: pkg/generate/openapi.gen.go dist get dist/openapi.yaml
 	go build -v
+
+run: build
+	./lb-api
 
 get:
 	go get
