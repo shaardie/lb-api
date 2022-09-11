@@ -29,7 +29,7 @@ func (s *Server) GetLoadbalancers(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, lbs)
 }
 
-func (s *Server) GetLoadbalancer(ctx echo.Context, name string) error {
+func (s *Server) GetLoadbalancer(ctx echo.Context, name generate.Name) error {
 	lb, err := s.DB.GetLoadbalancer(ctx.Request().Context(), name)
 	if err != nil {
 		if err == db.ErrNotFound {
@@ -40,7 +40,7 @@ func (s *Server) GetLoadbalancer(ctx echo.Context, name string) error {
 	return ctx.JSON(http.StatusOK, lb)
 }
 
-func (s *Server) CreateLoadBalancer(ctx echo.Context, name string) error {
+func (s *Server) CreateLoadBalancer(ctx echo.Context, name generate.Name) error {
 	lb := generate.Loadbalancer{}
 	err := ctx.Bind(&lb)
 	if err != nil {
@@ -58,6 +58,14 @@ func (s *Server) CreateLoadBalancer(ctx echo.Context, name string) error {
 	}
 
 	return ctx.JSON(http.StatusCreated, lb)
+}
+
+func (s *Server) DeleteLoadBalancer(ctx echo.Context, name generate.Name) error {
+	err := s.DB.DeleteLoadbalancer(ctx.Request().Context(), name)
+	if err != nil {
+		return s.sendError(ctx, http.StatusInternalServerError, "server error")
+	}
+	return nil
 }
 
 func (*Server) sendError(ctx echo.Context, code int, message string) error {

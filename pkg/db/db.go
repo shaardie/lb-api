@@ -19,6 +19,7 @@ type DB interface {
 	GetLoadBalancers(ctx context.Context) (Content, error)
 	GetLoadbalancer(ctx context.Context, name string) (generate.Loadbalancer, error)
 	CreateLoadbalancer(ctx context.Context, name string, cfg generate.Loadbalancer) error
+	DeleteLoadbalancer(ctx context.Context, name string) error
 }
 
 type DBImpl struct {
@@ -71,6 +72,24 @@ func (dbImpl *DBImpl) CreateLoadbalancer(ctx context.Context, name string, cfg g
 	}
 
 	ct[name] = cfg
+
+	err = dbImpl.write(ctx, ct)
+	if err != nil {
+		return fmt.Errorf("failed to update database, %w", err)
+	}
+	return nil
+}
+
+func (dbImpl *DBImpl) DeleteLoadbalancer(ctx context.Context, name generate.Name) error {
+	dbImpl.m.Lock()
+	defer dbImpl.m.Unlock()
+
+	ct, err := dbImpl.read(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to read from database, %w", err)
+	}
+
+	delete(ct, name)
 
 	err = dbImpl.write(ctx, ct)
 	if err != nil {
