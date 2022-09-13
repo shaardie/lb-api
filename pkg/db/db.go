@@ -8,6 +8,8 @@ import (
 	"os"
 	"sync"
 
+	"github.com/shaardie/lb-api/pkg/config"
+	"github.com/shaardie/lb-api/pkg/configurator"
 	"github.com/shaardie/lb-api/pkg/generate"
 )
 
@@ -23,13 +25,15 @@ type DB interface {
 }
 
 type DBImpl struct {
-	filename string
+	cfg      *config.Config
+	cfgrator *configurator.Configurator
 	m        *sync.Mutex
 }
 
-func New(filename string) DB {
+func New(cfg *config.Config, cfgrator *configurator.Configurator) DB {
 	return &DBImpl{
-		filename: filename,
+		cfg:      cfg,
+		cfgrator: cfgrator,
 		m:        &sync.Mutex{},
 	}
 }
@@ -73,6 +77,11 @@ func (dbImpl *DBImpl) CreateLoadbalancer(ctx context.Context, name string, cfg g
 
 	ct[name] = cfg
 
+	err = dbImpl.cfgrator.UpdateConfiguration(ctx, ct)
+	if err != nil {
+		return fmt.Errorf("configurator failed to update, %w", err)
+	}
+
 	err = dbImpl.write(ctx, ct)
 	if err != nil {
 		return fmt.Errorf("failed to update database, %w", err)
@@ -91,6 +100,11 @@ func (dbImpl *DBImpl) DeleteLoadbalancer(ctx context.Context, name generate.Name
 
 	delete(ct, name)
 
+	err = dbImpl.cfgrator.UpdateConfiguration(ctx, ct)
+	if err != nil {
+		return fmt.Errorf("configurator failed to update, %w", err)
+	}
+
 	err = dbImpl.write(ctx, ct)
 	if err != nil {
 		return fmt.Errorf("failed to update database, %w", err)
@@ -100,34 +114,34 @@ func (dbImpl *DBImpl) DeleteLoadbalancer(ctx context.Context, name generate.Name
 
 func (dbImpl *DBImpl) read(ctx context.Context) (Content, error) {
 	ct := make(Content)
-	f, err := os.Open(dbImpl.filename)
+	f, err := os.Open(dbImpl.cfg.DBFilename)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return ct, nil
 		}
-		return ct, fmt.Errorf("unable to open file %v, %w", dbImpl.filename, err)
+		return ct, fmt.Errorf("unable to open file %v, %w", dbImpl.cfg.DBFilename, err)
 	}
 
 	jd := json.NewDecoder(f)
 	err = jd.Decode(&ct)
 	if err != nil {
-		return ct, fmt.Errorf("failed to decode content from %v, %w", dbImpl.filename, err)
+		return ct, fmt.Errorf("failed to decode content from %v, %w", dbImpl.cfg.DBFilename, err)
 	}
 
 	return ct, nil
 }
 
 func (dbImpl *DBImpl) write(ctx context.Context, ct Content) error {
-	f, err := os.Create(dbImpl.filename)
+	f, err := os.Create(dbImpl.cfg.DBFilename)
 	if err != nil {
-		return fmt.Errorf("unable to override file %v, %w", dbImpl.filename, err)
+		return fmt.Errorf("unable to override file %v, %w", dbImpl.cfg.DBFilename, err)
 	}
 
 	je := json.NewEncoder(f)
 	je.SetIndent("", "  ")
 	err = je.Encode(ct)
 	if err != nil {
-		return fmt.Errorf("failed to encode content to %v, %w", dbImpl.filename, err)
+		return fmt.Errorf("failed to encode content to %v, %w", dbImpl.cfg.DBFilename, err)
 	}
 
 	return nil

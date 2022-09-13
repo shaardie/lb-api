@@ -5,12 +5,21 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/shaardie/lb-api/pkg/config"
+	"github.com/shaardie/lb-api/pkg/configurator"
 	"github.com/shaardie/lb-api/pkg/db"
 	"github.com/shaardie/lb-api/pkg/generate"
 )
 
 type Server struct {
-	DB db.DB
+	DB  db.DB
+	cfg *config.Config
+}
+
+func New(cfg *config.Config, db db.DB, configurator *configurator.Configurator) *Server {
+	return &Server{
+		DB:  db,
+		cfg: cfg,
+	}
 }
 
 func (*Server) GetHealth(ctx echo.Context) error {
@@ -20,7 +29,7 @@ func (*Server) GetHealth(ctx echo.Context) error {
 func (s *Server) GetLoadbalancers(ctx echo.Context) error {
 	ct, err := s.DB.GetLoadBalancers(ctx.Request().Context())
 	if err != nil {
-		return s.sendError(ctx, http.StatusInternalServerError, "server error")
+		return err
 	}
 	lbs := make([]generate.Loadbalancer, 0, len(ct))
 	for _, lb := range ct {
@@ -35,7 +44,7 @@ func (s *Server) GetLoadbalancer(ctx echo.Context, name generate.Name) error {
 		if err == db.ErrNotFound {
 			return s.sendError(ctx, http.StatusNotFound, "not found")
 		}
-		return s.sendError(ctx, http.StatusInternalServerError, "server error")
+		return err
 	}
 	return ctx.JSON(http.StatusOK, lb)
 }
@@ -48,13 +57,13 @@ func (s *Server) CreateLoadBalancer(ctx echo.Context, name generate.Name) error 
 	}
 	lb.Name = &name
 	lb.Status = &generate.Status{
-		Hostname: config.Cfg.Hostname,
-		Ip:       config.Cfg.IP,
+		Hostname: s.cfg.Hostname,
+		Ip:       s.cfg.IP,
 	}
 
 	err = s.DB.CreateLoadbalancer(ctx.Request().Context(), name, lb)
 	if err != nil {
-		return s.sendError(ctx, http.StatusInternalServerError, "server error")
+		return err
 	}
 
 	return ctx.JSON(http.StatusCreated, lb)
@@ -63,7 +72,7 @@ func (s *Server) CreateLoadBalancer(ctx echo.Context, name generate.Name) error 
 func (s *Server) DeleteLoadBalancer(ctx echo.Context, name generate.Name) error {
 	err := s.DB.DeleteLoadbalancer(ctx.Request().Context(), name)
 	if err != nil {
-		return s.sendError(ctx, http.StatusInternalServerError, "server error")
+		return err
 	}
 	return nil
 }

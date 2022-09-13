@@ -2,3 +2,4 @@ dist
 lb-api
 db.json
 .vscode
+haproxy.conf
