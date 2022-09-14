@@ -1,9 +1,0 @@
-# This is an example configuration
-
-db_filename: /var/lb-api/db.json
-configurator_filename: /etc/haproxy/haproxy.conf
-configurator_command:
-  - systemctl
-  - reload
-  - haproxy
-hostname: lb-api.example.com
