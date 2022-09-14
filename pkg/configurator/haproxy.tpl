@@ -6,7 +6,7 @@ defaults
     {{- range $i, $f := .Config.Frontends }}
     {{- $port := .Port }}
 frontend frontend-{{ $name }}-{{ $port }}
-    bind {{ $port }}
+    bind :{{ $port }}
     default_backend backend-{{ $name }}-{{ $port }}
 backend backend-{{ $name }}-{{ $port }}
         {{- range $j, $s := .Backend.Server }}
