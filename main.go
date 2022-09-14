@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"flag"
 
@@ -33,6 +34,16 @@ func main() {
 	}
 
 	db := db.New(cfg, cfgrator)
+
+	ctx := context.TODO()
+	ct, err := db.GetLoadBalancers(ctx)
+	if err != nil {
+		panic(err)
+	}
+	err = cfgrator.UpdateConfiguration(ctx, ct)
+	if err != nil {
+		panic(err)
+	}
 
 	s := server.New(cfg, db, cfgrator)
 
