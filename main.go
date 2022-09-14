@@ -20,6 +20,8 @@ var ui embed.FS
 var configFilename = flag.String("config", "lba-api.yaml", "name of the configuration file of the lba-api")
 
 func main() {
+	flag.Parse()
+
 	cfg, err := config.New(*configFilename)
 	if err != nil {
 		panic(err)
