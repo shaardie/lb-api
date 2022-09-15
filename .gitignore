@@ -1,5 +1,5 @@
 dist
-lb-api
+./lb-api
 db.json
 .vscode
 haproxy.conf

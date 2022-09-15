@@ -1,0 +1,63 @@
+package main
+
+import (
+	"context"
+	"embed"
+	"flag"
+
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+
+	"github.com/shaardie/lb-api/lb-api/config"
+	"github.com/shaardie/lb-api/lb-api/configurator"
+	"github.com/shaardie/lb-api/lb-api/db"
+	"github.com/shaardie/lb-api/lb-api/generate"
+	"github.com/shaardie/lb-api/lb-api/server"
+)
+
+//go:embed dist/**
+var ui embed.FS
+
+var configFilename = flag.String("config", "lba-api.yaml", "name of the configuration file of the lba-api")
+
+func main() {
+	flag.Parse()
+
+	cfg, err := config.New(*configFilename)
+	if err != nil {
+		panic(err)
+	}
+
+	cfgrator, err := configurator.New(cfg)
+	if err != nil {
+		panic(err)
+	}
+
+	db := db.New(cfg, cfgrator)
+
+	ctx := context.TODO()
+	ct, err := db.GetLoadBalancers(ctx)
+	if err != nil {
+		panic(err)
+	}
+	err = cfgrator.UpdateConfiguration(ctx, ct)
+	if err != nil {
+		panic(err)
+	}
+
+	s := server.New(cfg, db, cfgrator)
+
+	// Echo instance
+	e := echo.New()
+
+	// Middleware
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+
+	generate.RegisterHandlers(e, s)
+
+	e.StaticFS("/ui", echo.MustSubFS(ui, "dist"))
+
+	// Start server
+	e.Logger.Fatal(e.Start(":8080"))
+}
