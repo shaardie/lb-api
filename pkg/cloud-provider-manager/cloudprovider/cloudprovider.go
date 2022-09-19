@@ -34,4 +34,4 @@ func (*LBApiCloudProvider) Zones() (cloudprovider.Zones, bool)             { ret
 func (*LBApiCloudProvider) Clusters() (cloudprovider.Clusters, bool)       { return nil, false }
 func (*LBApiCloudProvider) Routes() (cloudprovider.Routes, bool)           { return nil, false }
 func (*LBApiCloudProvider) ProviderName() string                           { return ProviderName }
-func (*LBApiCloudProvider) HasClusterID() bool                             { return false }
+func (*LBApiCloudProvider) HasClusterID() bool                             { return true }
