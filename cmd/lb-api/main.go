@@ -8,17 +8,17 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
-	"github.com/shaardie/lb-api/lb-api/config"
-	"github.com/shaardie/lb-api/lb-api/configurator"
-	"github.com/shaardie/lb-api/lb-api/db"
-	"github.com/shaardie/lb-api/lb-api/generate"
-	"github.com/shaardie/lb-api/lb-api/server"
+	"github.com/shaardie/lb-api/pkg/generate"
+	"github.com/shaardie/lb-api/pkg/lb-api/config"
+	"github.com/shaardie/lb-api/pkg/lb-api/configurator"
+	"github.com/shaardie/lb-api/pkg/lb-api/db"
+	"github.com/shaardie/lb-api/pkg/lb-api/server"
 )
 
 //go:embed dist/**
 var ui embed.FS
 
-var configFilename = flag.String("config", "lba-api.yaml", "name of the configuration file of the lba-api")
+var configFilename = flag.String("config", "lb-api.yaml", "name of the configuration file of the lba-api")
 
 func main() {
 	flag.Parse()

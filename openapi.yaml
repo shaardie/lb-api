@@ -141,25 +141,31 @@ components:
         frontends:
           type: array
           items:
-            type: object
-            required:
-              - port
-              - backend
-            properties:
-              port:
-                type: integer
-                minimum: 1
-                maximum: 65536
-                example: 1337
-              backend:
-                type: object
-                properties:
-                  server:
-                    type: array
-                    items:
-                      type: string
-                      pattern: '^.+:[0-9]+$'
-                      example: 1.2.3.4:1337
+            $ref: '#/components/schemas/frontend'
+
+    frontend:
+      type: object
+      required:
+        - port
+        - backend
+      properties:
+        port:
+          type: integer
+          minimum: 1
+          maximum: 65536
+          example: 1337
+        backend:
+          $ref: '#/components/schemas/backend'
+
+    backend:
+      type: object
+      properties:
+        server:
+          type: array
+          items:
+            type: string
+            pattern: '^.+:[0-9]+$'
+            example: 1.2.3.4:1337
 
     status:
       type: object

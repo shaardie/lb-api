@@ -1,0 +1,6 @@
+package: generate
+generate:
+  echo-server: true
+  client: true
+  models: true
+output: pkg/generate/openapi.gen.go
