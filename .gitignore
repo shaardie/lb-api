@@ -1,5 +1,8 @@
 dist
-./lb-api
+/lb-api
+/cloud-provider-manager
 db.json
 .vscode
 haproxy.conf
+.vagrant
+venv

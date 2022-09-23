@@ -1,0 +1,15 @@
+Vagrant.configure("2") do |config|
+  config.vm.synced_folder "../", "/src"
+  config.vm.define "loadbalancer" do |loadbalancer|
+    loadbalancer.vm.box = "generic/ubuntu2204"
+    loadbalancer.vm.network "private_network", ip: "10.13.37.2"
+    loadbalancer.vm.provision "shell", inline: "/src/scripts/setup_loadbalancer.sh"
+
+  end
+
+  config.vm.define "kubernetes" do |kubernetes|
+    kubernetes.vm.box = "generic/ubuntu2204"
+    kubernetes.vm.network "private_network", ip: "10.13.37.3"
+    kubernetes.vm.provision "shell", inline: "/src/scripts/setup_kubernetes.sh"
+  end
+end
