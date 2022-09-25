@@ -4,9 +4,9 @@ go 1.19
 
 require (
 	github.com/deepmap/oapi-codegen v1.11.0
-	github.com/getkin/kin-openapi v0.100.0
 	github.com/labstack/echo/v4 v4.9.0
 	gopkg.in/yaml.v3 v3.0.1
+	k8s.io/api v0.25.1
 	k8s.io/apimachinery v0.25.1
 	k8s.io/cloud-provider v0.25.1
 	k8s.io/component-base v0.25.1
@@ -44,7 +44,6 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/imdario/mergo v0.3.6 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
-	github.com/invopop/yaml v0.1.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/labstack/gommon v0.3.1 // indirect
@@ -97,7 +96,6 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	k8s.io/api v0.25.1 // indirect
 	k8s.io/apiserver v0.25.1 // indirect
 	k8s.io/client-go v0.25.1 // indirect
 	k8s.io/component-helpers v0.25.1 // indirect

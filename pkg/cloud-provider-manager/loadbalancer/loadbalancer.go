@@ -8,10 +8,11 @@ import (
 	"github.com/shaardie/lb-api/pkg/generate"
 	v1 "k8s.io/api/core/v1"
 	cloudprovider "k8s.io/cloud-provider"
+	"k8s.io/klog/v2"
 )
 
 type LoadBalancer struct {
-	client generate.ClientWithResponsesInterface
+	Client generate.ClientWithResponsesInterface
 }
 
 func (lb *LoadBalancer) apiStatusToServiceStatus(apiStatus *generate.Status) (status *v1.LoadBalancerStatus) {
@@ -28,12 +29,14 @@ func (lb *LoadBalancer) apiStatusToServiceStatus(apiStatus *generate.Status) (st
 }
 
 func (lb *LoadBalancer) GetLoadBalancerName(ctx context.Context, clusterName string, service *v1.Service) string {
+	klog.Info("GetLoadBalancerName")
 	return fmt.Sprintf("%s-%s-%s", clusterName, service.Namespace, service.Name)
 }
 
 func (lb *LoadBalancer) GetLoadBalancer(ctx context.Context, clusterName string, service *v1.Service) (status *v1.LoadBalancerStatus, exists bool, err error) {
+	klog.Info("GetLoadBalancer")
 	name := lb.GetLoadBalancerName(ctx, clusterName, service)
-	resp, err := lb.client.GetLoadbalancerWithResponse(ctx, name)
+	resp, err := lb.Client.GetLoadbalancerWithResponse(ctx, name)
 	if err != nil {
 		return nil, false, fmt.Errorf("failed to get loadbalancer, %w", err)
 	}
@@ -45,6 +48,7 @@ func (lb *LoadBalancer) GetLoadBalancer(ctx context.Context, clusterName string,
 }
 
 func (lb *LoadBalancer) EnsureLoadBalancer(ctx context.Context, clusterName string, service *v1.Service, nodes []*v1.Node) (*v1.LoadBalancerStatus, error) {
+	klog.Info("EnsureLoadBalancer")
 	name := lb.GetLoadBalancerName(ctx, clusterName, service)
 	glb := generate.Loadbalancer{
 		Config: generate.Config{
@@ -52,7 +56,6 @@ func (lb *LoadBalancer) EnsureLoadBalancer(ctx context.Context, clusterName stri
 		},
 	}
 	for _, port := range service.Spec.Ports {
-
 		server := []string{}
 		for _, node := range nodes {
 			// Get Node Address
@@ -60,7 +63,7 @@ func (lb *LoadBalancer) EnsureLoadBalancer(ctx context.Context, clusterName stri
 			if len(addrs) == 0 {
 				continue
 			}
-			server = append(server, node.Status.Addresses[0].Address)
+			server = append(server, fmt.Sprintf("%s:%d", node.Status.Addresses[0].Address, port.NodePort))
 		}
 		glb.Config.Frontends = append(
 			glb.Config.Frontends,
@@ -73,7 +76,9 @@ func (lb *LoadBalancer) EnsureLoadBalancer(ctx context.Context, clusterName stri
 		)
 	}
 
-	resp, err := lb.client.CreateLoadBalancerWithResponse(ctx, name, glb)
+	klog.Info("Loadbalancer", glb)
+
+	resp, err := lb.Client.CreateLoadBalancerWithResponse(ctx, name, glb)
 	if err != nil {
 		return nil, fmt.Errorf("failed to call api and create load balancer, %w", err)
 	}
@@ -87,8 +92,9 @@ func (lb *LoadBalancer) EnsureLoadBalancer(ctx context.Context, clusterName stri
 }
 
 func (lb *LoadBalancer) EnsureLoadBalancerDeleted(ctx context.Context, clusterName string, service *v1.Service) error {
+	klog.Info("EnsureLoadBalancerDeleted")
 	name := lb.GetLoadBalancerName(ctx, clusterName, service)
-	resp, err := lb.client.DeleteLoadBalancerWithResponse(ctx, name)
+	resp, err := lb.Client.DeleteLoadBalancerWithResponse(ctx, name)
 	if err != nil {
 		return fmt.Errorf("failed to delete loadbalancer, %w", err)
 	}
@@ -98,5 +104,6 @@ func (lb *LoadBalancer) EnsureLoadBalancerDeleted(ctx context.Context, clusterNa
 	return nil
 }
 func (lb *LoadBalancer) UpdateLoadBalancer(ctx context.Context, clusterName string, service *v1.Service, nodes []*v1.Node) error {
+	klog.Info("UpdateLoadBalancer")
 	return cloudprovider.NotImplemented
 }

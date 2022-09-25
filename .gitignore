@@ -1,8 +1,6 @@
 dist
 /lb-api
 /cloud-provider-manager
-db.json
-.vscode
-haproxy.conf
-.vagrant
+/.vscode
+scripts/.vagrant
 /kubeconfig
