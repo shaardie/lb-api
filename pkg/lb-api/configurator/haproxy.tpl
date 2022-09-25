@@ -1,6 +1,8 @@
 defaults
     mode tcp
-
+    timeout client 10s
+    timeout connect 5s
+    timeout server 10s
 {{- range .}}
     {{- $name := .Name }}
     {{- range $i, $f := .Config.Frontends }}
