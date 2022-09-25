@@ -1,6 +1,6 @@
 swagger_version="4.14.0"
 version=0.1.0
-.PHONY: lb-api cloud-provider-manager docker-image setup
+.PHONY: lb-api cloud-provider-manager docker-image setup_init setup_update setup_destroy
 
 all: cloud-provider-manager lb-api
 
@@ -30,17 +30,22 @@ cmd/lb-api/dist/openapi.yaml: openapi.yaml
 pkg/generate/openapi.gen.go: openapi.yaml oapi.yaml
 	oapi-codegen -config oapi.yaml openapi.yaml
 
-init_setup: all
+setup_init: all
 	cd scripts && vagrant up
+	cd scripts && vagrant ssh -c "sudo cat /root/.kube/config" > ../kubeconfig
 
-update_setup: all
-	cd scripts && vagrant ssh loadbalancer -c "sudo systemctl stop lb-api"
-	cd scripts && vagrant upload ../lb-api /src/lb-api loadbalancer
-	cd scripts && vagrant ssh loadbalancer -c "sudo systemctl restart lb-api"
+setup_update: all
+	cd scripts && vagrant ssh -c "sudo systemctl stop lb-api"
+	cd scripts && vagrant upload ../lb-api /src/lb-api
+	cd scripts && vagrant ssh -c "sudo systemctl restart lb-api"
 
-	cd scripts && vagrant ssh kubernetes -c "sudo systemctl stop cloud-provider-manager"
-	cd scripts && vagrant upload ../cloud-provider-manager /src/cloud-provider-manager kubernetes
-	cd scripts && vagrant ssh kubernetes -c "sudo systemctl restart cloud-provider-manager"
+	cd scripts && vagrant ssh -c "sudo systemctl stop cloud-provider-manager"
+	cd scripts && vagrant upload ../cloud-provider-manager /src/cloud-provider-manager
+	cd scripts && vagrant ssh -c "sudo systemctl restart cloud-provider-manager"
 
-destoy_setup:
+setup_destroy:
 	cd scripts && vagrant destroy -f
+	rm kubeconfig
+
+setup_ssh:
+	cd scripts && vagrant ssh
