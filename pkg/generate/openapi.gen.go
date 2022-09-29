@@ -18,6 +18,10 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+const (
+	BearerAuthScopes = "BearerAuth.Scopes"
+)
+
 // Backend defines model for backend.
 type Backend struct {
 	HealthCheckNodePort *int     `json:"health_check_node_port,omitempty"`
@@ -801,6 +805,8 @@ type ServerInterfaceWrapper struct {
 func (w *ServerInterfaceWrapper) GetHealth(ctx echo.Context) error {
 	var err error
 
+	ctx.Set(BearerAuthScopes, []string{""})
+
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.GetHealth(ctx)
 	return err
@@ -809,6 +815,8 @@ func (w *ServerInterfaceWrapper) GetHealth(ctx echo.Context) error {
 // GetLoadbalancers converts echo context to params.
 func (w *ServerInterfaceWrapper) GetLoadbalancers(ctx echo.Context) error {
 	var err error
+
+	ctx.Set(BearerAuthScopes, []string{""})
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.GetLoadbalancers(ctx)
@@ -826,6 +834,8 @@ func (w *ServerInterfaceWrapper) DeleteLoadBalancer(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter name: %s", err))
 	}
 
+	ctx.Set(BearerAuthScopes, []string{""})
+
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.DeleteLoadBalancer(ctx, name)
 	return err
@@ -842,6 +852,8 @@ func (w *ServerInterfaceWrapper) GetLoadbalancer(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter name: %s", err))
 	}
 
+	ctx.Set(BearerAuthScopes, []string{""})
+
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.GetLoadbalancer(ctx, name)
 	return err
@@ -857,6 +869,8 @@ func (w *ServerInterfaceWrapper) CreateLoadBalancer(ctx echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter name: %s", err))
 	}
+
+	ctx.Set(BearerAuthScopes, []string{""})
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.CreateLoadBalancer(ctx, name)

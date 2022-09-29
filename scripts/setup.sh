@@ -1,6 +1,7 @@
 set -eu
 
 ip="$(hostname -I | cut -d ' ' -f 1)"
+bearer_token=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 64)
 
 # Install lb-api
 apt-get install --yes haproxy
@@ -17,6 +18,7 @@ WantedBy=multi-user.target
 EOF
 cat << EOF > /etc/lb-api/lb-api.conf
 admin_address: :29999
+bearer_token: $bearer_token
 db_filename: /var/lib/lb-api/db.json
 configurator_filename: /etc/haproxy/haproxy.cfg
 configurator_command: ["systemctl", "reload", "haproxy"]
@@ -57,6 +59,7 @@ cp /root/.kube/config /etc/cloud-provider-manager/kubeconfig
 cat << EOF > /etc/cloud-provider-manager/cloud.yaml
 loadbalancer:
   url: http://$ip:29999
+  bearer_token: $bearer_token
 EOF
 cat << EOF > /etc/systemd/system/cloud-provider-manager.service
 [Unit]

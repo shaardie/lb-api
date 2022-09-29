@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/subtle"
 	"embed"
 	"flag"
 
@@ -53,9 +54,12 @@ func main() {
 	// Middleware
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-
-	generate.RegisterHandlers(e, s)
-
+	api := e.Group("", middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
+		Validator: func(key string, c echo.Context) (bool, error) {
+			return subtle.ConstantTimeCompare([]byte(key), []byte(cfg.BearerToken)) == 1, nil
+		},
+	}))
+	generate.RegisterHandlers(api, s)
 	e.StaticFS("/ui", echo.MustSubFS(ui, "dist"))
 
 	// Start server

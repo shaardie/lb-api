@@ -9,6 +9,8 @@ info:
   license:
     name: MIT
     url: https://choosealicense.com/licenses/mit/
+security:
+  - BearerAuth: []
 paths:
   /healthz:
     get:
@@ -26,7 +28,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
-
   /loadbalancers:
     get:
       description: Get all loadbalancer
@@ -106,6 +107,10 @@ paths:
                 $ref: '#/components/schemas/error'
 
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
   parameters:
     name:
       name: name

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/deepmap/oapi-codegen/pkg/securityprovider"
 	"gopkg.in/yaml.v3"
 	cloudprovider "k8s.io/cloud-provider"
 
@@ -18,7 +19,8 @@ const (
 
 type providerConfig struct {
 	LoadBalancer struct {
-		URL string `yaml:"url"`
+		URL         string `yaml:"url"`
+		BearerToken string `yaml:"bearer_token"`
 	} `yaml:"loadbalancer"`
 }
 
@@ -36,7 +38,12 @@ func init() {
 			return nil, fmt.Errorf("failed to decode cloud config, %w", err)
 		}
 
-		cli, err := generate.NewClientWithResponses(cfg.LoadBalancer.URL)
+		bearerTokenProvider, bearerTokenProviderErr := securityprovider.NewSecurityProviderBearerToken(cfg.LoadBalancer.BearerToken)
+		if bearerTokenProviderErr != nil {
+			return nil, fmt.Errorf("failed to create bearer token provider, %w", err)
+		}
+
+		cli, err := generate.NewClientWithResponses(cfg.LoadBalancer.URL, generate.WithRequestEditorFn(bearerTokenProvider.Intercept))
 		if err != nil {
 			return nil, fmt.Errorf("failed to create lb-api client, %w", err)
 		}
