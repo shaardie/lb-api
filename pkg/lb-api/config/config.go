@@ -8,6 +8,7 @@ import (
 )
 
 type Config struct {
+	AdminAddress         string   `yaml:"admin_address"`
 	DBFilename           string   `yaml:"db_filename"`
 	ConfiguratorFilename string   `yaml:"configurator_filename"`
 	ConfiguratorCommand  []string `yaml:"configurator_command"`

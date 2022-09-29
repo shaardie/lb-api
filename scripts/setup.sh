@@ -16,6 +16,7 @@ ExecStart=/src/lb-api -config /etc/lb-api/lb-api.conf
 WantedBy=multi-user.target
 EOF
 cat << EOF > /etc/lb-api/lb-api.conf
+admin_address: :29999
 db_filename: /var/lib/lb-api/db.json
 configurator_filename: /etc/haproxy/haproxy.cfg
 configurator_command: ["systemctl", "reload", "haproxy"]
@@ -55,7 +56,7 @@ mkdir -p /etc/cloud-provider-manager/
 cp /root/.kube/config /etc/cloud-provider-manager/kubeconfig
 cat << EOF > /etc/cloud-provider-manager/cloud.yaml
 loadbalancer:
-  url: http://$ip:8080
+  url: http://$ip:29999
 EOF
 cat << EOF > /etc/systemd/system/cloud-provider-manager.service
 [Unit]

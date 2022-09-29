@@ -59,5 +59,5 @@ func main() {
 	e.StaticFS("/ui", echo.MustSubFS(ui, "dist"))
 
 	// Start server
-	e.Logger.Fatal(e.Start(":8080"))
+	e.Logger.Fatal(e.Start(cfg.AdminAddress))
 }
