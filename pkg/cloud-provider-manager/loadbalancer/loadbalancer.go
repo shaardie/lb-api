@@ -7,7 +7,6 @@ import (
 
 	"github.com/shaardie/lb-api/pkg/generate"
 	v1 "k8s.io/api/core/v1"
-	cloudprovider "k8s.io/cloud-provider"
 	"k8s.io/klog/v2"
 )
 
@@ -49,6 +48,11 @@ func (lb *LoadBalancer) GetLoadBalancer(ctx context.Context, clusterName string,
 
 func (lb *LoadBalancer) EnsureLoadBalancer(ctx context.Context, clusterName string, service *v1.Service, nodes []*v1.Node) (*v1.LoadBalancerStatus, error) {
 	klog.Info("EnsureLoadBalancer")
+	return lb.ensureLoadBalancer(ctx, clusterName, service, nodes)
+}
+
+func (lb *LoadBalancer) ensureLoadBalancer(ctx context.Context, clusterName string, service *v1.Service, nodes []*v1.Node) (*v1.LoadBalancerStatus, error) {
+	klog.Info("ensureLoadBalancer")
 	name := lb.GetLoadBalancerName(ctx, clusterName, service)
 	glb := generate.Loadbalancer{
 		Config: generate.Config{
@@ -111,6 +115,7 @@ func (lb *LoadBalancer) EnsureLoadBalancerDeleted(ctx context.Context, clusterNa
 	return nil
 }
 func (lb *LoadBalancer) UpdateLoadBalancer(ctx context.Context, clusterName string, service *v1.Service, nodes []*v1.Node) error {
-	klog.Info("UpdateLoadBalancer")
-	return cloudprovider.NotImplemented
+	klog.Info("UpdateLoadbalancer")
+	_, err := lb.ensureLoadBalancer(ctx, clusterName, service, nodes)
+	return err
 }
