@@ -159,7 +159,11 @@ components:
 
     backend:
       type: object
+      required:
+        - server
       properties:
+        health_check_node_port:
+          type: integer
         server:
           type: array
           items:

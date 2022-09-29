@@ -11,8 +11,12 @@ frontend frontend-{{ $name }}-{{ $port }}
     bind :{{ $port }}
     default_backend backend-{{ $name }}-{{ $port }}
 backend backend-{{ $name }}-{{ $port }}
+    {{- $HealthCheckNodePort := .Backend.HealthCheckNodePort }}
+    {{- if $HealthCheckNodePort }}
+    option httpchk GET /healthz
+    {{- end }}
         {{- range $j, $s := .Backend.Server }}
-    server server{{ $j }} {{ $s }}
+    server server{{ $j }} {{ $s }} {{ if $HealthCheckNodePort }}check port {{ $HealthCheckNodePort }}{{ end }}
         {{- end }}
     {{- end }}
 {{- end }}

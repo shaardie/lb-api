@@ -65,13 +65,20 @@ func (lb *LoadBalancer) EnsureLoadBalancer(ctx context.Context, clusterName stri
 			}
 			server = append(server, fmt.Sprintf("%s:%d", node.Status.Addresses[0].Address, port.NodePort))
 		}
+
+		backend := generate.Backend{
+			Server: server,
+		}
+		if service.Spec.HealthCheckNodePort != 0 {
+			HealthCheckNodePort := int(service.Spec.HealthCheckNodePort)
+			backend.HealthCheckNodePort = &HealthCheckNodePort
+		}
+
 		glb.Config.Frontends = append(
 			glb.Config.Frontends,
 			generate.Frontend{
-				Port: int(port.Port),
-				Backend: generate.Backend{
-					Server: &server,
-				},
+				Port:    int(port.Port),
+				Backend: backend,
 			},
 		)
 	}

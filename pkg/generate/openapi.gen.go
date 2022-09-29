@@ -20,7 +20,8 @@ import (
 
 // Backend defines model for backend.
 type Backend struct {
-	Server *[]string `json:"server,omitempty"`
+	HealthCheckNodePort *int     `json:"health_check_node_port,omitempty"`
+	Server              []string `json:"server"`
 }
 
 // Config defines model for config.
