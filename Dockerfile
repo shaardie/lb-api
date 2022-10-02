@@ -10,7 +10,7 @@ COPY cmd cmd
 COPY pkg pkg
 COPY openapi.yaml oapi.yaml Makefile ./
 RUN apt-get install -y make
-RUN make cloud-provider-manager lb-api
+RUN make cloud-provider-manager
 
 FROM debian:stable-slim as cloud-provider-manager
 WORKDIR /
