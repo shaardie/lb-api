@@ -10,7 +10,7 @@ import (
 type Config struct {
 	AdminAddress string `yaml:"admin_address"`
 	BearerToken  string `yaml:"bearer_token"`
-	TLS          struct {
+	TLS          *struct {
 		CertificateFilename string `yaml:"certificate_filename"`
 		KeyFilename         string `yaml:"key_filename"`
 	} `yaml:"tls"`
