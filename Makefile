@@ -1,15 +1,12 @@
 swagger_version="4.14.0"
-version=0.1.0
-.PHONY: lb-api cloud-provider-manager docker-image setup_init setup_update setup_destroy
+version?=latest
+.PHONY: lb-api cloud-provider-manager docker-image docker-push setup_init setup_update setup_destroy
 
 all: cloud-provider-manager lb-api
 
 # cloud-provider-manager
 cloud-provider-manager: pkg/generate/openapi.gen.go
 	go build -v -o cloud-provider-manager cmd/cloud-provider-manager/main.go
-
-docker-image: Dockerfile
-	docker build -t shaardie/lb-api-cloud-provider-manager:$(version) .
 
 cloud-provider-manager/generate/openapi.gen.go: openapi.yaml
 	oapi-codegen -generate client -package generate openapi.yaml > cloud-provider-manager/generate/openapi.gen.go
@@ -27,9 +24,18 @@ cmd/lb-api/dist:
 cmd/lb-api/dist/openapi.yaml: openapi.yaml
 	cp openapi.yaml cmd/lb-api/dist/
 
+# General
 pkg/generate/openapi.gen.go: openapi.yaml oapi.yaml
 	oapi-codegen -config oapi.yaml openapi.yaml
 
+# Docker
+docker-image:
+	docker build --target cloud-provider-manager -t shaardie/lb-api-cloud-provider-manager:$(version) .
+
+docker-push: docker-image
+	docker push shaardie/lb-api-cloud-provider-manager:$(version)
+
+# Dev Setup
 setup_init: all
 	cd scripts && vagrant up
 	cd scripts && vagrant ssh -c "sudo cat /root/.kube/config" > ../kubeconfig
