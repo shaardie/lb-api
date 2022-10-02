@@ -8,8 +8,12 @@ import (
 )
 
 type Config struct {
-	AdminAddress         string   `yaml:"admin_address"`
-	BearerToken          string   `yaml:"bearer_token"`
+	AdminAddress string `yaml:"admin_address"`
+	BearerToken  string `yaml:"bearer_token"`
+	TLS          struct {
+		CertificateFilename string `yaml:"certificate_filename"`
+		KeyFilename         string `yaml:"key_filename"`
+	} `yaml:"tls"`
 	DBFilename           string   `yaml:"db_filename"`
 	ConfiguratorFilename string   `yaml:"configurator_filename"`
 	ConfiguratorCommand  []string `yaml:"configurator_command"`
