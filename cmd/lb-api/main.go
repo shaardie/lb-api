@@ -66,6 +66,9 @@ func main() {
 	// Serve UI
 	e.StaticFS("/ui", echo.MustSubFS(ui, "dist"))
 
-	// Start server
+	// Start server with or without TLS
+	if cfg.TLS == nil {
+		e.Logger.Fatal(e.Start(cfg.AdminAddress))
+	}
 	e.Logger.Fatal(e.StartTLS(cfg.AdminAddress, cfg.TLS.CertificateFilename, cfg.TLS.KeyFilename))
 }
