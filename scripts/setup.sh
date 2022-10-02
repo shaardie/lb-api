@@ -69,7 +69,7 @@ After=network-online.target
 ExecStart=/src/cloud-provider-manager \
     --cloud-config /etc/cloud-provider-manager/cloud.yaml \
     --kubeconfig /etc/cloud-provider-manager/kubeconfig \
-    --cloud-provider lb-api
+    --cloud-provider lb-api \
     -v 4
 
 [Install]
