@@ -1,9 +1,13 @@
 package cloudprovider
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
+	"os"
 
 	"github.com/deepmap/oapi-codegen/pkg/securityprovider"
 	"gopkg.in/yaml.v3"
@@ -19,8 +23,9 @@ const (
 
 type providerConfig struct {
 	LoadBalancer struct {
-		URL         string `yaml:"url"`
-		BearerToken string `yaml:"bearer_token"`
+		URL                 string  `yaml:"url"`
+		BearerToken         string  `yaml:"bearer_token"`
+		CertificateFilename *string `yaml:"certificate_filename"`
 	} `yaml:"loadbalancer"`
 }
 
@@ -43,7 +48,29 @@ func init() {
 			return nil, fmt.Errorf("failed to create bearer token provider, %w", err)
 		}
 
-		cli, err := generate.NewClientWithResponses(cfg.LoadBalancer.URL, generate.WithRequestEditorFn(bearerTokenProvider.Intercept))
+		// Custom http.Client
+		httpClient := &http.Client{}
+		// Load custom certificate, if necessary
+		if cfg.LoadBalancer.CertificateFilename != nil {
+			caCert, err := os.ReadFile(*cfg.LoadBalancer.CertificateFilename)
+			if err != nil {
+				return nil, fmt.Errorf("failed to read certificate file, %w", err)
+			}
+
+			caCertPool := x509.NewCertPool()
+			caCertPool.AppendCertsFromPEM(caCert)
+
+			httpClient.Transport = &http.Transport{
+				TLSClientConfig: &tls.Config{
+					RootCAs: caCertPool,
+				},
+			}
+		}
+		cli, err := generate.NewClientWithResponses(
+			cfg.LoadBalancer.URL,
+			generate.WithHTTPClient(httpClient),
+			generate.WithRequestEditorFn(bearerTokenProvider.Intercept),
+		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create lb-api client, %w", err)
 		}

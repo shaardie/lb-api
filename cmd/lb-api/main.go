@@ -54,14 +54,18 @@ func main() {
 	// Middleware
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+
+	// Register api with authentication
 	api := e.Group("", middleware.KeyAuthWithConfig(middleware.KeyAuthConfig{
 		Validator: func(key string, c echo.Context) (bool, error) {
 			return subtle.ConstantTimeCompare([]byte(key), []byte(cfg.BearerToken)) == 1, nil
 		},
 	}))
 	generate.RegisterHandlers(api, s)
+
+	// Serve UI
 	e.StaticFS("/ui", echo.MustSubFS(ui, "dist"))
 
 	// Start server
-	e.Logger.Fatal(e.Start(cfg.AdminAddress))
+	e.Logger.Fatal(e.StartTLS(cfg.AdminAddress, cfg.TLS.CertificateFilename, cfg.TLS.KeyFilename))
 }

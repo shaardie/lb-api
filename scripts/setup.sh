@@ -6,6 +6,11 @@ bearer_token=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 64)
 # Install lb-api
 apt-get install --yes haproxy
 mkdir -p /var/lib/lb-api/ /etc/lb-api/
+# generate certificate
+openssl req -x509 -newkey rsa:4096 -nodes \
+  -out /etc/lb-api/tls.crt -keyout /etc/lb-api/tls.key \
+  -days 365 -subj "/C=DE/CN=$ip" \
+  -addext "subjectAltName = IP:192.168.121.249"
 cat << EOF > /etc/systemd/system/lb-api.service
 [Unit]
 After=network-online.target
@@ -18,6 +23,9 @@ WantedBy=multi-user.target
 EOF
 cat << EOF > /etc/lb-api/lb-api.conf
 admin_address: :29999
+tls:
+  certificate_filename: /etc/lb-api/tls.crt
+  key_filename: /etc/lb-api/tls.key
 bearer_token: $bearer_token
 db_filename: /var/lib/lb-api/db.json
 configurator_filename: /etc/haproxy/haproxy.cfg
@@ -58,8 +66,9 @@ mkdir -p /etc/cloud-provider-manager/
 cp /root/.kube/config /etc/cloud-provider-manager/kubeconfig
 cat << EOF > /etc/cloud-provider-manager/cloud.yaml
 loadbalancer:
-  url: http://$ip:29999
+  url: https://$ip:29999
   bearer_token: $bearer_token
+  certificate_filename: /etc/lb-api/tls.crt
 EOF
 cat << EOF > /etc/systemd/system/cloud-provider-manager.service
 [Unit]
