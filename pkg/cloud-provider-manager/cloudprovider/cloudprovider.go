@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 
 	"github.com/deepmap/oapi-codegen/pkg/securityprovider"
 	"gopkg.in/yaml.v3"
@@ -23,9 +22,9 @@ const (
 
 type providerConfig struct {
 	LoadBalancer struct {
-		URL                 string  `yaml:"url"`
-		BearerToken         string  `yaml:"bearer_token"`
-		CertificateFilename *string `yaml:"certificate_filename"`
+		URL         string  `yaml:"url"`
+		BearerToken string  `yaml:"bearer_token"`
+		Certificate *[]byte `yaml:"certificate"`
 	} `yaml:"loadbalancer"`
 }
 
@@ -51,14 +50,9 @@ func init() {
 		// Custom http.Client
 		httpClient := &http.Client{}
 		// Load custom certificate, if necessary
-		if cfg.LoadBalancer.CertificateFilename != nil {
-			caCert, err := os.ReadFile(*cfg.LoadBalancer.CertificateFilename)
-			if err != nil {
-				return nil, fmt.Errorf("failed to read certificate file, %w", err)
-			}
-
+		if cfg.LoadBalancer.Certificate != nil {
 			caCertPool := x509.NewCertPool()
-			caCertPool.AppendCertsFromPEM(caCert)
+			caCertPool.AppendCertsFromPEM(*cfg.LoadBalancer.Certificate)
 
 			httpClient.Transport = &http.Transport{
 				TLSClientConfig: &tls.Config{

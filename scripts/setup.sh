@@ -68,7 +68,8 @@ cat << EOF > /etc/cloud-provider-manager/cloud.yaml
 loadbalancer:
   url: https://$ip:29999
   bearer_token: $bearer_token
-  certificate_filename: /etc/lb-api/tls.crt
+  certificate_filename: |
+$(cat /etc/lb-api/tls.crt | sed 's/^/      /')
 EOF
 cat << EOF > /etc/systemd/system/cloud-provider-manager.service
 [Unit]
