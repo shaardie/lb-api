@@ -2,6 +2,22 @@
 
 This is a small tool to make it possible to configure your loadbalancer via HTTP API calls.
 
+# Installation
+
+To install the Cloud Provider Manager best use the [Helm Chart](./install/charts/lb-api-cloud-provider-manager/).
+
+Simply run
+
+```bash
+$ cat <<EOF > values.yaml
+config:
+  loadbalancer:
+    url: https://<url>:29999
+    bearer_token: <secret>
+EOF
+$ helm --kubeconfig kubeconfig upgrade --install --namespace kube-system cloud-provider-manager ./install/charts/lb-api-cloud-provider-manager -f values.yaml
+```
+
 ## Development
 
 You can setup a development environment using Vagrant.
