@@ -39,6 +39,7 @@ docker-push: docker-image
 setup_init: all
 	cd scripts && vagrant up
 	cd scripts && vagrant ssh -c "sudo cat /root/.kube/config" > ../kubeconfig
+	chmod 600 kubeconfig
 
 setup_update: all
 	cd scripts && vagrant ssh -c "sudo systemctl stop lb-api"

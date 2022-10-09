@@ -87,8 +87,6 @@ func (lb *LoadBalancer) ensureLoadBalancer(ctx context.Context, clusterName stri
 		)
 	}
 
-	klog.Info("Loadbalancer", glb)
-
 	resp, err := lb.Client.CreateLoadBalancerWithResponse(ctx, name, glb)
 	if err != nil {
 		return nil, fmt.Errorf("failed to call api and create load balancer, %w", err)

@@ -10,7 +10,7 @@ mkdir -p /var/lib/lb-api/ /etc/lb-api/
 openssl req -x509 -newkey rsa:4096 -nodes \
   -out /etc/lb-api/tls.crt -keyout /etc/lb-api/tls.key \
   -days 365 -subj "/C=DE/CN=$ip" \
-  -addext "subjectAltName = IP:192.168.121.249"
+  -addext "subjectAltName = IP:$ip"
 cat << EOF > /etc/systemd/system/lb-api.service
 [Unit]
 After=network-online.target
@@ -68,7 +68,7 @@ cat << EOF > /etc/cloud-provider-manager/cloud.yaml
 loadbalancer:
   url: https://$ip:29999
   bearer_token: $bearer_token
-  certificate_filename: |
+  certificate: |
 $(cat /etc/lb-api/tls.crt | sed 's/^/      /')
 EOF
 cat << EOF > /etc/systemd/system/cloud-provider-manager.service

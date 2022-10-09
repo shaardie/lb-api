@@ -24,7 +24,7 @@ type providerConfig struct {
 	LoadBalancer struct {
 		URL         string  `yaml:"url"`
 		BearerToken string  `yaml:"bearer_token"`
-		Certificate *[]byte `yaml:"certificate"`
+		Certificate *string `yaml:"certificate"`
 	} `yaml:"loadbalancer"`
 }
 
@@ -52,7 +52,7 @@ func init() {
 		// Load custom certificate, if necessary
 		if cfg.LoadBalancer.Certificate != nil {
 			caCertPool := x509.NewCertPool()
-			caCertPool.AppendCertsFromPEM(*cfg.LoadBalancer.Certificate)
+			caCertPool.AppendCertsFromPEM([]byte(*cfg.LoadBalancer.Certificate))
 
 			httpClient.Transport = &http.Transport{
 				TLSClientConfig: &tls.Config{
